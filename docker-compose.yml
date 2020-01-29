@@ -1,0 +1,21 @@
+version: '3'
+services:
+  fluentd:
+    image: fluent/fluentd:v1.9.0-1.0
+    ports:
+      - 24224:24224
+    volumes:
+      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    container_name: "fluentd"
+
+  wowhoney:
+    build: wowhoney/
+    ports:
+      - 80:8080
+    logging:
+      driver: fluentd
+      options:
+        tag: "docker.{{.Name}}"
+    depends_on: 
+        - fluentd
+    container_name: "wowhoney"
