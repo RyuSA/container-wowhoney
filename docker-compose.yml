@@ -1,21 +1,25 @@
 version: '3'
 services:
-  fluentd:
-    image: fluent/fluentd:v1.9.0-1.0
-    ports:
-      - 24224:24224
-    volumes:
-      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
-    container_name: "fluentd"
 
-  wowhoney:
-    build: wowhoney/
-    ports:
-      - 80:8080
-    logging:
-      driver: fluentd
-      options:
-        tag: "docker.{{.Name}}"
-    depends_on: 
-        - fluentd
-    container_name: "wowhoney"
+    elasticsearch:
+        image: elasticsearch:7.5.2
+        environment:
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ports:
+            - 9200:9200
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        container_name: "elasticsearch"
+
+    fluentd:
+        build: fluentd/
+        ports:
+            - 24224:24224
+        volumes:
+            - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+        container_name: "fluentd"
+        depends_on:
+            - "elasticsearch"
